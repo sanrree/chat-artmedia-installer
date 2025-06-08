@@ -7,10 +7,16 @@ read -p "Enter public port [default: 3000]: " PORT
 PORT=${PORT:-3000}
 
 # Step 2: Ask for version tag
-read -p "Enter Docker image tag (e.g. v0.1.0-alpha): " TAG
+read -p "Enter Docker image tag (leave blank to use latest): " TAG
+
 if [ -z "$TAG" ]; then
-  echo "No tag provided. Exiting."
-  exit 1
+  echo "Fetching latest tag from Docker Hub..."
+  TAG=$(curl -s "https://registry.hub.docker.com/v2/repositories/${DOCKERHUB_USERNAME}/chat-artmedia-backend/tags?page_size=1" | grep -oP '"name":\s*"\K[^"]+')
+  if [ -z "$TAG" ]; then
+    echo "❌ Failed to fetch latest tag. Please enter it manually."
+    exit 1
+  fi
+  echo "✅ Using latest tag: $TAG"
 fi
 
 # Step 3: Ask for instance name

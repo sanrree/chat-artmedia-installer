@@ -62,7 +62,6 @@ envsubst '${INSTANCE}' < ./nginx/default.template.conf > ./nginx/generated/${INS
 
 # Step 7: Run Docker Compose
 echo "🚀 Starting Docker containers..."
-export DOCKER_DEFAULT_PLATFORM=linux/amd64
 docker compose --env-file "$ENV_FILE" -f docker-compose.base.yml -p "chat-artmedia-$INSTANCE" up -d
 
 echo ""

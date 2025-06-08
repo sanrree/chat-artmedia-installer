@@ -11,7 +11,7 @@ read -p "Enter Docker image tag (leave blank to use latest): " TAG
 
 if [ -z "$TAG" ]; then
   echo "Fetching latest tag from Docker Hub..."
-  TAG=$(curl -s "https://registry.hub.docker.com/v2/repositories/${DOCKERHUB_USERNAME}/chat-artmedia-backend/tags?page_size=1" | grep -oP '"name":\s*"\K[^"]+')
+  TAG=$(curl -s "https://registry.hub.docker.com/v2/repositories/sanreex/chat-artmedia-backend/tags?page_size=1" | sed -n 's/.*"name": *"\([^"]*\)".*/\1/p' | head -n1)
   if [ -z "$TAG" ]; then
     echo "❌ Failed to fetch latest tag. Please enter it manually."
     exit 1

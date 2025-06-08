@@ -11,13 +11,14 @@ It pulls prebuilt images from Docker Hub, configures your environment, and start
 To install on a fresh server (Docker required):
 
 ```bash
-curl -sL https://raw.githubusercontent.com/sanrree/chat-artmedia-installer/main/installer.sh | bash
+curl -sO https://raw.githubusercontent.com/sanrree/chat-artmedia-installer/main/installer.sh
+bash installer.sh
 ```
 
-Or using `wget`:
+Or execute directly from memory (no file saved):
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/sanrree/chat-artmedia-installer/main/installer.sh | bash
+bash <(curl -s https://raw.githubusercontent.com/sanrree/chat-artmedia-installer/main/installer.sh)
 ```
 
 ---

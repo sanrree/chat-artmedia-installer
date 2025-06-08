@@ -1,3 +1,5 @@
+version: '3.8'
+
 networks:
   instance_net:
     name: ${INSTANCE}_network
@@ -45,9 +47,6 @@ services:
 
   backend:
     image: sanreex/chat-artmedia-backend:${TAG}
-    build:
-      context: ./chat-backend
-      dockerfile: Dockerfile.prod
     container_name: ${INSTANCE}_backend
     environment:
       - PORT=4000
@@ -72,11 +71,6 @@ services:
 
   frontend:
     image: sanreex/chat-artmedia-frontend:${TAG}
-    build:
-      context: ./chat-frontend
-      dockerfile: Dockerfile.prod
-      args:
-        VITE_BASE_URL: /backend
     container_name: ${INSTANCE}_frontend
     expose:
       - '80'
@@ -87,9 +81,6 @@ services:
 
   widget-api:
     image: sanreex/chat-artmedia-widget-api:${TAG}
-    build:
-      context: .
-      dockerfile: ./chat-widget-api/Dockerfile.prod
     container_name: ${INSTANCE}_widget_api
     environment:
       - PORT=4001
@@ -103,15 +94,11 @@ services:
 
   socket:
     image: sanreex/chat-artmedia-socket:${TAG}
-    build:
-      context: ./chat-socket
-      dockerfile: Dockerfile.prod
-      args:
-        - SOCKET_API_KEY=${API_KEY}
     container_name: ${INSTANCE}_socket
     environment:
       - PORT=4002
       - NODE_ENV=production
+      - SOCKET_API_KEY=${API_KEY}
     expose:
       - '4002'
     depends_on:
@@ -126,7 +113,6 @@ services:
       - "${PORT}:80"
     volumes:
       - ./nginx/generated/${INSTANCE}_default.conf:/etc/nginx/conf.d/default.conf
-      # - ./ssl:/etc/nginx/ssl
     depends_on:
       - frontend
       - backend

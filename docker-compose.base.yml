@@ -98,7 +98,7 @@ services:
     environment:
       - PORT=4002
       - NODE_ENV=production
-      - SOCKET_API_KEY=${API_KEY}
+      - API_KEY=${API_KEY}
     expose:
       - '4002'
     depends_on:

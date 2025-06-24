@@ -59,7 +59,8 @@ services:
       - GMAIL_REFRESH_TOKEN=${GMAIL_REFRESH_TOKEN}
       - TAG=${INSTANCE}
       - SENTRY_DSN=${SENTRY_DSN}
-      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+      - DATABASE_URL="postgres://default:${POSTGRES_PASSWORD}@postgres:5432/chatdb"
+      - MONGODB="mongodb://admin:${MONGO_ROOT_PASSWORD}@mongo:27017"
     expose:
       - '4000'
     depends_on:

@@ -30,7 +30,6 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 # Step 4: Set up environment file
-read -p "Enter Sentry Auth Token (leave blank if not used): " SENTRY_AUTH_TOKEN
 read -p "Enter Sentry DSN (leave blank if not used): " SENTRY_DSN
 
 read -p "Enter Gmail Client ID (leave blank if not used): " GMAIL_CLIENT_ID
@@ -67,7 +66,6 @@ GMAIL_CLIENT_ID="$GMAIL_CLIENT_ID"
 GMAIL_CLIENT_SECRET="$GMAIL_CLIENT_SECRET"
 GMAIL_REFRESH_TOKEN="$GMAIL_REFRESH_TOKEN"
 
-SENTRY_AUTH_TOKEN="$SENTRY_AUTH_TOKEN"
 SENTRY_DSN="$SENTRY_DSN"
 
 TAG="$TAG"

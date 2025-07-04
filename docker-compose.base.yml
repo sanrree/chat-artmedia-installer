@@ -89,6 +89,7 @@ services:
     environment:
       - PORT=4001
       - NODE_ENV=production
+      - WEB_URL=${WIDGET_WEBSITE_URL}
     expose:
       - '4001'
     depends_on:

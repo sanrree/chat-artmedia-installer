@@ -2,14 +2,21 @@
 
 set -e
 
+# Step 0: Load .env if exists
+if [ -f ".env" ]; then
+  echo "ℹ️  Loading existing .env file..."
+  export $(grep -v '^#' .env | xargs)
+fi
+
 # Step 1: Ask for Port
-read -p "Enter public port [default: 3000]: " PORT
-PORT=${PORT:-3000}
+read -p "Enter public port [default: ${PORT:-3000}]: " INPUT_PORT
+PORT=${INPUT_PORT:-${PORT:-3000}}
 
 # Step 2: Ask for version tag
-read -p "Enter Docker image tag (leave blank to use latest): " TAG
+read -p "Enter Docker image tag [default: ${TAG:-latest}]: " INPUT_TAG
+TAG=${INPUT_TAG:-${TAG:-latest}}
 
-if [ -z "$TAG" ]; then
+if [ "$TAG" == "latest" ]; then
   echo "Fetching latest tag from Docker Hub..."
   TAG=$(curl -s "https://registry.hub.docker.com/v2/repositories/sanreex/chat-artmedia-backend/tags?page_size=1" | sed -n 's/.*"name": *"\([^"]*\)".*/\1/p' | head -n1)
   if [ -z "$TAG" ]; then
@@ -20,8 +27,8 @@ if [ -z "$TAG" ]; then
 fi
 
 # Step 3: Ask for instance name
-read -p "Enter instance name [default: production]: " INSTANCE
-INSTANCE=${INSTANCE:-production}
+read -p "Enter instance name [default: ${INSTANCE:-production}]: " INPUT_INSTANCE
+INSTANCE=${INPUT_INSTANCE:-${INSTANCE:-production}}
 
 # Check for openssl
 if ! command -v openssl >/dev/null 2>&1; then
@@ -30,11 +37,23 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 # Step 4: Set up environment file
-read -p "Enter Sentry DSN (leave blank if not used): " SENTRY_DSN
+read -p "Enter Sentry DSN [default: ${SENTRY_DSN:-}]: " INPUT_SENTRY_DSN
+SENTRY_DSN=${INPUT_SENTRY_DSN:-${SENTRY_DSN:-}}
 
-read -p "Enter Gmail Client ID (leave blank if not used): " GMAIL_CLIENT_ID
-read -p "Enter Gmail Client Secret (leave blank if not used): " GMAIL_CLIENT_SECRET
-read -p "Enter Gmail Refresh Token (leave blank if not used): " GMAIL_REFRESH_TOKEN
+read -p "Enter Gmail Client ID [default: ${GMAIL_CLIENT_ID:-}]: " INPUT_GMAIL_CLIENT_ID
+GMAIL_CLIENT_ID=${INPUT_GMAIL_CLIENT_ID:-${GMAIL_CLIENT_ID:-}}
+
+read -p "Enter Gmail Client Secret [default: ${GMAIL_CLIENT_SECRET:-}]: " INPUT_GMAIL_CLIENT_SECRET
+GMAIL_CLIENT_SECRET=${INPUT_GMAIL_CLIENT_SECRET:-${GMAIL_CLIENT_SECRET:-}}
+
+read -p "Enter Gmail Refresh Token [default: ${GMAIL_REFRESH_TOKEN:-}]: " INPUT_GMAIL_REFRESH_TOKEN
+GMAIL_REFRESH_TOKEN=${INPUT_GMAIL_REFRESH_TOKEN:-${GMAIL_REFRESH_TOKEN:-}}
+
+read -p "Enter PostHog API Key [default: ${POSTHOG_KEY:-}]: " INPUT_POSTHOG_KEY
+POSTHOG_KEY=${INPUT_POSTHOG_KEY:-${POSTHOG_KEY:-}}
+
+read -p "Enter PostHog Host URL [default: ${POSTHOG_HOST:-}]: " INPUT_POSTHOG_HOST
+POSTHOG_HOST=${INPUT_POSTHOG_HOST:-${POSTHOG_HOST:-}}
 
 ENV_FILE=".env.$INSTANCE"
 
@@ -61,11 +80,16 @@ MINIO_SECRET_KEY="$MINIO_SECRET_KEY"
 POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
 MONGO_ROOT_PASSWORD="$MONGO_ROOT_PASSWORD"
 
+MONGODB="mongodb://admin:$MONGO_ROOT_PASSWORD@mongo:27017"
+
 GMAIL_CLIENT_ID="$GMAIL_CLIENT_ID"
 GMAIL_CLIENT_SECRET="$GMAIL_CLIENT_SECRET"
 GMAIL_REFRESH_TOKEN="$GMAIL_REFRESH_TOKEN"
 
 SENTRY_DSN="$SENTRY_DSN"
+
+POSTHOG_KEY="$POSTHOG_KEY"
+POSTHOG_HOST="$POSTHOG_HOST"
 
 TAG="$TAG"
 EOF
@@ -85,9 +109,33 @@ curl -fsSL https://raw.githubusercontent.com/sanrree/chat-artmedia-installer/mai
 export INSTANCE
 envsubst '${INSTANCE}' < ./nginx/default.template.conf > ./nginx/generated/${INSTANCE}_default.conf
 
-# Step 7: Run Docker Compose
+# Step 7: Generate config.js
+mkdir -p ./frontend/generated
+
+cat > ./frontend/generated/config.js <<EOF
+window.RUNTIME_CONFIG = {
+  POSTHOG_KEY: "${POSTHOG_KEY}",
+  POSTHOG_HOST: "${POSTHOG_HOST}"
+};
+EOF
+
+echo "✅ Generated ./frontend/generated/config.js"
+
+# Step 8: Run Docker Compose
 echo "🚀 Starting Docker containers..."
 docker compose --env-file "$ENV_FILE" -f docker-compose.base.yml -p "chat-artmedia-$INSTANCE" up -d
+
+# Wait a bit for frontend container to be ready
+echo "⏳ Waiting for frontend container to be ready..."
+sleep 5
+
+# Step 9: Copy config.js into running frontend container
+docker cp ./frontend/generated/config.js ${INSTANCE}_frontend:/usr/share/nginx/html/config.js
+echo "✅ Copied config.js into container ${INSTANCE}_frontend"
+
+# Step 10: Clean up local file
+rm ./frontend/generated/config.js
+echo "🧹 Cleaned up local config.js"
 
 echo ""
 echo "✅ Deployment complete!"

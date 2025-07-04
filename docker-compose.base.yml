@@ -62,7 +62,7 @@ services:
       - TAG=${INSTANCE}
       - SENTRY_DSN=${SENTRY_DSN}
       - DATABASE_URL=postgres://default:${POSTGRES_PASSWORD}@postgres:5432/chatdb
-      - MONGODB=mongodb://admin:${MONGO_ROOT_PASSWORD}@mongo:27017
+      - MONGODB=${MONGODB}
     expose:
       - '4000'
     depends_on:

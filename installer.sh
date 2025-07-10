@@ -30,6 +30,10 @@ fi
 read -p "Enter instance name [default: ${INSTANCE:-production}]: " INPUT_INSTANCE
 INSTANCE=${INPUT_INSTANCE:-${INSTANCE:-production}}
 
+# Step 3.5: Ask for public URL
+read -p "Enter public URL [default: ${PUBLIC_URL:-http://localhost:$PORT}]: " INPUT_PUBLIC_URL
+PUBLIC_URL=${INPUT_PUBLIC_URL:-${PUBLIC_URL:-http://localhost:$PORT}}
+
 # Check for openssl
 if ! command -v openssl >/dev/null 2>&1; then
   echo "❌ openssl is required but not installed. Aborting."
@@ -71,7 +75,7 @@ MONGO_ROOT_PASSWORD=$(openssl rand -hex 16)
 cat > $ENV_FILE <<EOF
 INSTANCE="$INSTANCE"
 PORT="$PORT"
-PUBLIC_URL="http://localhost:$PORT"
+PUBLIC_URL="$PUBLIC_URL"
 
 API_KEY="$API_KEY"
 WIDGET_JWT_SECRET="$WIDGET_JWT_SECRET"
